@@ -17,17 +17,10 @@
  */
 
 import Browser from '../utils/browser.js';
-import {BaseLoader, LoaderStatus, LoaderErrors, DataSource, DataSourceRange} from './loader.js';
+import {BaseLoader, LoaderStatus, LoaderErrors, DataSource, DataSourceRange} from './loader';
 import {RuntimeException} from '../utils/exception.js';
-import RangeSeekHandler from "./range-seek-handler";
-
-type LoaderConfig = {
-
-    reuseRedirectedURL?: string;
-
-    headers: Headers;
-
-};
+import RangeSeekHandler from './range-seek-handler';
+import {FlvConfig} from '../config';
 
 /* fetch + stream IO loader. Currently working on Chrome 43+.
  * fetch provides a better alternative http API to XMLHttpRequest
@@ -38,7 +31,7 @@ type LoaderConfig = {
 class FetchStreamLoader extends BaseLoader {
     TAG = 'FetchStreamLoader';
     _seekHandler: RangeSeekHandler;
-    _config: LoaderConfig;
+    _config: FlvConfig;
     _requestAbort: boolean;
     _contentLength?: number;
     _receivedLength: number;
@@ -59,7 +52,7 @@ class FetchStreamLoader extends BaseLoader {
         }
     }
 
-    constructor(seekHandler: RangeSeekHandler, config: LoaderConfig) {
+    constructor(seekHandler: RangeSeekHandler, config: FlvConfig) {
         super('fetch-stream-loader');
         this.TAG = 'FetchStreamLoader';
 

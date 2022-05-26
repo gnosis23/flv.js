@@ -17,27 +17,51 @@
  */
 
 import Log from '../utils/logger.js';
-import SpeedSampler from './speed-sampler.js';
-import {LoaderErrors} from './loader.js';
-import FetchStreamLoader from './fetch-stream-loader.ts';
-import RangeSeekHandler from './range-seek-handler.ts';
-import ParamSeekHandler from './param-seek-handler.js';
+import SpeedSampler from './speed-sampler';
+import {BaseLoader, CustomLoaderConstructor, DataSource, DataSourceRange, LoaderErrors} from './loader';
+import FetchStreamLoader from './fetch-stream-loader';
+import RangeSeekHandler from './range-seek-handler';
+import ParamSeekHandler from './param-seek-handler';
 import {RuntimeException, IllegalStateException, InvalidArgumentException} from '../utils/exception.js';
-
-/**
- * DataSource: {
- *     url: string,
- *     filesize: number,
- *     cors: boolean,
- *     withCredentials: boolean
- * }
- * 
- */
+import {FlvConfig} from '../config';
+import {SeekHandler} from './seek-handler';
 
 // Manage IO Loaders
 class IOController {
+    TAG: 'IOController';
+    _config: FlvConfig;
+    _extraData: any;
+    _stashInitialSize: number;
+    _stashUsed: number;
+    _stashSize: number;
+    _bufferSize: number;
+    _stashBuffer: ArrayBuffer;
+    _stashByteStart: number;
+    _enableStash: boolean;
+    _loader: BaseLoader;
+    _dataSource: DataSource;
+    _loaderClass?: CustomLoaderConstructor;
+    _seekHandler?: SeekHandler;
+    _isWebSocketURL: boolean;
+    _refTotalLength?: number;
+    _totalLength?: number;
+    _fullRequestFlag: boolean;
+    _currentRange?: DataSourceRange;
+    _redirectedURL?: string;
+    _speedNormalized: number;
+    _speedSampler: SpeedSampler;
+    _speedNormalizeList: number[];
+    _isEarlyEofReconnecting: boolean;
+    _paused: boolean;
+    _resumeFrom: number;
+    _onDataArrival?: (chunks: ArrayBufferLike, byteStart: number) => number;
+    _onSeeked?: () => void;
+    _onError?: (error: LoaderErrors, data: any) => void;
+    _onComplete?: (extra: any) => void;
+    _onRedirect?: (url: string) => void;
+    _onRecoveredEarlyEof?: () => void;
 
-    constructor(dataSource, config, extraData) {
+    constructor(dataSource: DataSource, config: FlvConfig, extraData: any) {
         this.TAG = 'IOController';
 
         this._config = config;
@@ -393,7 +417,7 @@ class IOController {
     }
 
     _adjustStashSize(normalized) {
-        let stashSizeKB = 0;
+        let stashSizeKB;
 
         if (this._config.isLive) {
             // live stream: always use single normalized speed for size of stashSizeKB
@@ -419,7 +443,7 @@ class IOController {
         this._stashSize = stashSizeKB * 1024;
     }
 
-    _dispatchChunks(chunks, byteStart) {
+    _dispatchChunks(chunks: ArrayBufferLike, byteStart: number): number {
         this._currentRange.to = byteStart + chunks.byteLength - 1;
         return this._onDataArrival(chunks, byteStart);
     }
@@ -508,7 +532,7 @@ class IOController {
                 this._stashUsed += chunk.byteLength;
             } else {  // stashUsed + chunkSize > stashSize, size limit exceeded
                 let stashArray = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
-                if (this._stashUsed > 0) {  // There're stash datas in buffer
+                if (this._stashUsed > 0) {  // There are stash data in buffer
                     // dispatch the whole stashBuffer, and stash remain data
                     // then append chunk to stashBuffer (stash)
                     let buffer = this._stashBuffer.slice(0, this._stashUsed);

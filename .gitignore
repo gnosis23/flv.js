@@ -183,3 +183,7 @@ pip-log.txt
 # Visual Studio Code
 .vscode/
 browse.VC.db
+
+d.ts/src/
+demo/output.flv
+demo/test*

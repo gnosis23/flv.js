@@ -16,7 +16,42 @@
  * limitations under the License.
  */
 
-export const defaultConfig = {
+import {CustomLoaderConstructor} from "./io/loader";
+
+export type FlvConfig = Partial<{
+    enableWorker: boolean,
+    enableStashBuffer?: boolean,
+    stashInitialSize?: number,
+
+    isLive: boolean,
+
+    lazyLoad: boolean,
+    lazyLoadMaxDuration: number,
+    lazyLoadRecoverDuration: number,
+    deferLoadAfterSourceOpen: boolean,
+
+    // autoCleanupSourceBuffer: default as false, leave unspecified
+    autoCleanupMaxBackwardDuration: number,
+    autoCleanupMinBackwardDuration: number,
+
+    statisticsInfoReportInterval: number,
+
+    fixAudioTimestampGap: boolean,
+
+    accurateSeek: boolean,
+    seekType: 'range' | 'param' | 'custom',  // [range, param, custom]
+    seekParamStart: 'bstart',
+    seekParamEnd: 'bend',
+    rangeLoadZeroStart: boolean,
+    customSeekHandler: any,
+    reuseRedirectedURL: boolean,
+    // referrerPolicy: leave as unspecified
+
+    headers: Headers,
+    customLoader: CustomLoaderConstructor,
+}>;
+
+export const defaultConfig: FlvConfig = {
     enableWorker: false,
     enableStashBuffer: true,
     stashInitialSize: undefined,
@@ -49,6 +84,6 @@ export const defaultConfig = {
     customLoader: undefined
 };
 
-export function createDefaultConfig() {
+export function createDefaultConfig(): FlvConfig {
     return Object.assign({}, defaultConfig);
 }

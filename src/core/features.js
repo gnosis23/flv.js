@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import IOController from '../io/io-controller.js';
-import {createDefaultConfig} from '../config.js';
+import IOController from '../io/io-controller.ts';
+import {createDefaultConfig} from '../config.ts';
 
 class Features {
 

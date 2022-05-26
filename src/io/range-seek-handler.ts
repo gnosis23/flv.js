@@ -17,8 +17,9 @@
  */
 
 import {DataSourceRange} from './loader';
+import {SeekHandler} from './seek-handler';
 
-class RangeSeekHandler {
+class RangeSeekHandler implements SeekHandler {
     _zeroStart: boolean;
 
     constructor(zeroStart) {

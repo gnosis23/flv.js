@@ -18,7 +18,7 @@
 
 import EventEmitter from 'events';
 import PlayerEvents from './player-events.js';
-import {createDefaultConfig} from '../config.js';
+import {createDefaultConfig} from '../config.ts';
 import {InvalidArgumentException, IllegalStateException} from '../utils/exception.js';
 
 // Player wrapper for browser's native player (HTMLVideoElement) without MediaSource src. 

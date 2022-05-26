@@ -23,9 +23,8 @@ import MediaInfo from './media-info.js';
 import FLVDemuxer from '../demux/flv-demuxer.js';
 import MP4Remuxer from '../remux/mp4-remuxer.js';
 import DemuxErrors from '../demux/demux-errors.js';
-import IOController from '../io/io-controller.js';
+import IOController from '../io/io-controller.ts';
 import TransmuxingEvents from './transmuxing-events.js';
-import {LoaderStatus, LoaderErrors} from '../io/loader.js';
 
 // Transmuxing (IO, Demuxing, Remuxing) controller, with multipart support
 class TransmuxingController {

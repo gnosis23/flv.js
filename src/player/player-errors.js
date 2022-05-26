@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {LoaderErrors} from '../io/loader.js';
+import {LoaderErrors} from '../io/loader';
 import DemuxErrors from '../demux/demux-errors.js';
 
 export const ErrorTypes = {

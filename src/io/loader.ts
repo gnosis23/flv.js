@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+import type {SeekHandler} from "./seek-handler";
+import type {FlvConfig} from "../config";
+
 export enum LoaderStatus {
     kIdle = 0,
     kConnecting,
@@ -45,6 +48,8 @@ export type DataSource = {
 
     referrerPolicy?: ReferrerPolicy;
 
+    filesize?: number;
+
 };
 
 export type DataSourceRange = {
@@ -55,6 +60,10 @@ export type DataSourceRange = {
 
 };
 
+export interface CustomLoaderConstructor {
+    new(seekHandler: SeekHandler, config: FlvConfig): BaseLoader;
+}
+
 /* Loader has callbacks which have following prototypes:
  *     function onContentLengthKnown(contentLength: number): void
  *     function onURLRedirect(url: string): void
@@ -62,7 +71,7 @@ export type DataSourceRange = {
  *     function onError(errorType: number, errorInfo: {code: number, msg: string}): void
  *     function onComplete(rangeFrom: number, rangeTo: number): void
  */
-export abstract class BaseLoader {
+export class BaseLoader {
     _type: string;
     _status: LoaderStatus;
     _needStash: boolean;
@@ -73,7 +82,7 @@ export abstract class BaseLoader {
     _onError?: (error: LoaderErrors, data: { code: number, msg: any }) => void;
     _onComplete?: (from: number, to: number) => void;
 
-    protected constructor(typeName: string) {
+    constructor(typeName: string) {
         this._type = typeName || 'undefined';
         this._status = LoaderStatus.kIdle;
         this._needStash = false;
@@ -151,9 +160,9 @@ export abstract class BaseLoader {
     }
 
     // pure virtual
-    abstract open(dataSource: DataSource, range: DataSourceRange);
+    open(dataSource: DataSource, range: DataSourceRange) {}
 
-    abstract abort();
+    abort() {}
 
 
 }
