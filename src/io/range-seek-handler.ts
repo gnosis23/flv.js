@@ -16,13 +16,17 @@
  * limitations under the License.
  */
 
-class RangeSeekHandler {
+import {DataSourceRange} from './loader';
+import {SeekHandler} from './seek-handler';
+
+class RangeSeekHandler implements SeekHandler {
+    _zeroStart: boolean;
 
     constructor(zeroStart) {
         this._zeroStart = zeroStart || false;
     }
 
-    getConfig(url, range) {
+    getConfig(url: string, range: DataSourceRange) {
         let headers = {};
 
         if (range.from !== 0 || range.to !== -1) {
@@ -43,7 +47,7 @@ class RangeSeekHandler {
         };
     }
 
-    removeURLParameters(seekedURL) {
+    removeURLParameters(seekedURL: string) {
         return seekedURL;
     }
 

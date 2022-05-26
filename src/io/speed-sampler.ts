@@ -18,6 +18,12 @@
 
 // Utility class to calculate realtime network I/O speed
 class SpeedSampler {
+    _firstCheckpoint: number;
+    _lastCheckpoint: number;
+    _intervalBytes: number;
+    _totalBytes: number;
+    _lastSecondBytes: number;
+    _now: () => number;
 
     constructor() {
         // milliseconds

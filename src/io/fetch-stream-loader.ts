@@ -16,18 +16,28 @@
  * limitations under the License.
  */
 
-import Log from '../utils/logger.js';
 import Browser from '../utils/browser.js';
-import {BaseLoader, LoaderStatus, LoaderErrors} from './loader.js';
+import {BaseLoader, LoaderStatus, LoaderErrors, DataSource, DataSourceRange} from './loader';
 import {RuntimeException} from '../utils/exception.js';
+import RangeSeekHandler from './range-seek-handler';
+import {FlvConfig} from '../config';
 
-/* fetch + stream IO loader. Currently working on chrome 43+.
+/* fetch + stream IO loader. Currently working on Chrome 43+.
  * fetch provides a better alternative http API to XMLHttpRequest
  *
  * fetch spec   https://fetch.spec.whatwg.org/
  * stream spec  https://streams.spec.whatwg.org/
  */
 class FetchStreamLoader extends BaseLoader {
+    TAG = 'FetchStreamLoader';
+    _seekHandler: RangeSeekHandler;
+    _config: FlvConfig;
+    _requestAbort: boolean;
+    _contentLength?: number;
+    _receivedLength: number;
+    _dataSource: DataSource;
+    _range: any;
+    _abortController?: AbortController;
 
     static isSupported() {
         try {
@@ -42,7 +52,7 @@ class FetchStreamLoader extends BaseLoader {
         }
     }
 
-    constructor(seekHandler, config) {
+    constructor(seekHandler: RangeSeekHandler, config: FlvConfig) {
         super('fetch-stream-loader');
         this.TAG = 'FetchStreamLoader';
 
@@ -62,7 +72,7 @@ class FetchStreamLoader extends BaseLoader {
         super.destroy();
     }
 
-    open(dataSource, range) {
+    open(dataSource: DataSource, range: DataSourceRange) {
         this._dataSource = dataSource;
         this._range = range;
 
@@ -84,7 +94,7 @@ class FetchStreamLoader extends BaseLoader {
             }
         }
 
-        let params = {
+        let params: RequestInit = {
             method: 'GET',
             headers: headers,
             mode: 'cors',
@@ -184,7 +194,7 @@ class FetchStreamLoader extends BaseLoader {
         }
     }
 
-    _pump(reader) {  // ReadableStreamReader
+    _pump(reader: ReadableStreamDefaultReader<Uint8Array>) {  // ReadableStreamReader
         return reader.read().then((result) => {
             if (result.done) {
                 // First check received length
@@ -240,21 +250,22 @@ class FetchStreamLoader extends BaseLoader {
             }
 
             this._status = LoaderStatus.kError;
-            let type = 0;
-            let info = null;
+            let _type;
+            let info;
 
-            if ((e.code === 19 || e.message === 'network error') && // NETWORK_ERR
-                (this._contentLength === null ||
-                (this._contentLength !== null && this._receivedLength < this._contentLength))) {
-                type = LoaderErrors.EARLY_EOF;
+            if (
+              (e.code === 19 || e.message === 'network error') && // NETWORK_ERR
+              (this._contentLength === null || (this._receivedLength < this._contentLength))
+            ) {
+                _type = LoaderErrors.EARLY_EOF;
                 info = {code: e.code, msg: 'Fetch stream meet Early-EOF'};
             } else {
-                type = LoaderErrors.EXCEPTION;
+                _type = LoaderErrors.EXCEPTION;
                 info = {code: e.code, msg: e.message};
             }
 
             if (this._onError) {
-                this._onError(type, info);
+                this._onError(_type, info);
             } else {
                 throw new RuntimeException(info.msg);
             }

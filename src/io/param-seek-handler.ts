@@ -16,7 +16,11 @@
  * limitations under the License.
  */
 
-class ParamSeekHandler {
+import {SeekHandler} from './seek-handler';
+
+class ParamSeekHandler implements SeekHandler {
+    _startName: string;
+    _endName: string;
 
     constructor(paramStart, paramEnd) {
         this._startName = paramStart;

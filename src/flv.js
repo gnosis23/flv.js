@@ -18,7 +18,7 @@
 
 import Polyfill from './utils/polyfill.js';
 import Features from './core/features.js';
-import {BaseLoader, LoaderStatus, LoaderErrors} from './io/loader.js';
+import {BaseLoader, LoaderStatus, LoaderErrors} from './io/loader';
 import FlvPlayer from './player/flv-player.js';
 import NativePlayer from './player/native-player.js';
 import PlayerEvents from './player/player-events.js';
