@@ -16,23 +16,43 @@
  * limitations under the License.
  */
 
-import {NotImplementedException} from '../utils/exception.js';
+export enum LoaderStatus {
+    kIdle = 0,
+    kConnecting,
+    kBuffering,
+    kError,
+    kComplete,
+}
 
-export const LoaderStatus = {
-    kIdle: 0,
-    kConnecting: 1,
-    kBuffering: 2,
-    kError: 3,
-    kComplete: 4
+export enum LoaderErrors {
+    OK = 'OK',
+    EXCEPTION = 'Exception',
+    HTTP_STATUS_CODE_INVALID = 'HttpStatusCodeInvalid',
+    CONNECTING_TIMEOUT = 'ConnectingTimeout',
+    EARLY_EOF = 'EarlyEof',
+    UNRECOVERABLE_EARLY_EOF = 'UnrecoverableEarlyEof'
+}
+
+export type DataSource = {
+
+    url: string;
+
+    withCredentials?: boolean;
+
+    cors?: boolean;
+
+    redirectedURL?: string;
+
+    referrerPolicy?: ReferrerPolicy;
+
 };
 
-export const LoaderErrors = {
-    OK: 'OK',
-    EXCEPTION: 'Exception',
-    HTTP_STATUS_CODE_INVALID: 'HttpStatusCodeInvalid',
-    CONNECTING_TIMEOUT: 'ConnectingTimeout',
-    EARLY_EOF: 'EarlyEof',
-    UNRECOVERABLE_EARLY_EOF: 'UnrecoverableEarlyEof'
+export type DataSourceRange = {
+
+    from: number;
+
+    to: number;
+
 };
 
 /* Loader has callbacks which have following prototypes:
@@ -42,9 +62,18 @@ export const LoaderErrors = {
  *     function onError(errorType: number, errorInfo: {code: number, msg: string}): void
  *     function onComplete(rangeFrom: number, rangeTo: number): void
  */
-export class BaseLoader {
+export abstract class BaseLoader {
+    _type: string;
+    _status: LoaderStatus;
+    _needStash: boolean;
+    // callbacks
+    _onContentLengthKnown?: (len: number) => void;
+    _onURLRedirect?: (url: string) => void;
+    _onDataArrival?: (chunk: ArrayBufferLike, byteStart: number, receivedLength: number) => void;
+    _onError?: (error: LoaderErrors, data: { code: number, msg: any }) => void;
+    _onComplete?: (from: number, to: number) => void;
 
-    constructor(typeName) {
+    protected constructor(typeName: string) {
         this._type = typeName || 'undefined';
         this._status = LoaderStatus.kIdle;
         this._needStash = false;
@@ -122,13 +151,9 @@ export class BaseLoader {
     }
 
     // pure virtual
-    open(dataSource, range) {
-        throw new NotImplementedException('Unimplemented abstract function!');
-    }
+    abstract open(dataSource: DataSource, range: DataSourceRange);
 
-    abort() {
-        throw new NotImplementedException('Unimplemented abstract function!');
-    }
+    abstract abort();
 
 
 }

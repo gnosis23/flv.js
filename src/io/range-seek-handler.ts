@@ -16,13 +16,16 @@
  * limitations under the License.
  */
 
+import {DataSourceRange} from './loader';
+
 class RangeSeekHandler {
+    _zeroStart: boolean;
 
     constructor(zeroStart) {
         this._zeroStart = zeroStart || false;
     }
 
-    getConfig(url, range) {
+    getConfig(url: string, range: DataSourceRange) {
         let headers = {};
 
         if (range.from !== 0 || range.to !== -1) {
@@ -43,7 +46,7 @@ class RangeSeekHandler {
         };
     }
 
-    removeURLParameters(seekedURL) {
+    removeURLParameters(seekedURL: string) {
         return seekedURL;
     }
 

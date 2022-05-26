@@ -18,13 +18,9 @@
 
 import Log from '../utils/logger.js';
 import SpeedSampler from './speed-sampler.js';
-import {LoaderStatus, LoaderErrors} from './loader.js';
-import FetchStreamLoader from './fetch-stream-loader.js';
-import MozChunkedLoader from './xhr-moz-chunked-loader.js';
-import MSStreamLoader from './xhr-msstream-loader.js';
-import RangeLoader from './xhr-range-loader.js';
-import WebSocketLoader from './websocket-loader.js';
-import RangeSeekHandler from './range-seek-handler.js';
+import {LoaderErrors} from './loader.js';
+import FetchStreamLoader from './fetch-stream-loader.ts';
+import RangeSeekHandler from './range-seek-handler.ts';
 import ParamSeekHandler from './param-seek-handler.js';
 import {RuntimeException, IllegalStateException, InvalidArgumentException} from '../utils/exception.js';
 
@@ -205,10 +201,6 @@ class IOController {
 
     // in KB/s
     get currentSpeed() {
-        if (this._loaderClass === RangeLoader) {
-            // SpeedSampler is inaccuracy if loader is RangeLoader
-            return this._loader.currentSpeed;
-        }
         return this._speedSampler.lastSecondKBps;
     }
 
@@ -239,14 +231,8 @@ class IOController {
     _selectLoader() {
         if (this._config.customLoader != null) {
             this._loaderClass = this._config.customLoader;
-        } else if (this._isWebSocketURL) {
-            this._loaderClass = WebSocketLoader;
         } else if (FetchStreamLoader.isSupported()) {
             this._loaderClass = FetchStreamLoader;
-        } else if (MozChunkedLoader.isSupported()) {
-            this._loaderClass = MozChunkedLoader;
-        } else if (RangeLoader.isSupported()) {
-            this._loaderClass = RangeLoader;
         } else {
             throw new RuntimeException('Your browser doesn\'t support xhr with arraybuffer responseType!');
         }
