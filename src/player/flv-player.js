@@ -20,8 +20,8 @@ import EventEmitter from 'events';
 import Log from '../utils/logger.js';
 import Browser from '../utils/browser.js';
 import PlayerEvents from './player-events.js';
-import Transmuxer from '../core/transmuxer.js';
-import TransmuxingEvents from '../core/transmuxing-events.js';
+import Transmuxer from '../core/transmuxer.ts';
+import TransmuxingEvents from '../core/transmuxing-events.ts';
 import MSEController from '../core/mse-controller.js';
 import MSEEvents from '../core/mse-events.js';
 import {ErrorTypes, ErrorDetails} from './player-errors.js';
@@ -148,10 +148,11 @@ class FlvPlayer {
             }
         });
         this._msectl.on(MSEEvents.ERROR, (info) => {
-            this._emitter.emit(PlayerEvents.ERROR,
-                               ErrorTypes.MEDIA_ERROR,
-                               ErrorDetails.MEDIA_MSE_ERROR,
-                               info
+            this._emitter.emit(
+                PlayerEvents.ERROR,
+                ErrorTypes.MEDIA_ERROR,
+                ErrorDetails.MEDIA_MSE_ERROR,
+                info
             );
         });
 

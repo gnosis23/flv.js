@@ -49,6 +49,7 @@ export type FlvConfig = Partial<{
 
     headers: Headers,
     customLoader: CustomLoaderConstructor,
+    referrerPolicy: ReferrerPolicy,
 }>;
 
 export const defaultConfig: FlvConfig = {

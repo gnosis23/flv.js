@@ -40,6 +40,10 @@ export type DataSource = {
 
     url: string;
 
+    duration: number;
+
+    filesize?: number;
+
     withCredentials?: boolean;
 
     cors?: boolean;
@@ -48,7 +52,14 @@ export type DataSource = {
 
     referrerPolicy?: ReferrerPolicy;
 
-    filesize?: number;
+    segments?: DataSource[];
+
+
+    timestampBase?: number;
+
+    hasAudio?: boolean;
+
+    hasVideo?: boolean;
 
 };
 

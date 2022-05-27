@@ -274,7 +274,7 @@ class IOController {
         this._loader.onError = this._onLoaderError.bind(this);
     }
 
-    open(optionalFrom) {
+    open(optionalFrom?: number) {
         this._currentRange = {from: 0, to: -1};
         if (optionalFrom) {
             this._currentRange.from = optionalFrom;
