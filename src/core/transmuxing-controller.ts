@@ -16,20 +16,44 @@
  * limitations under the License.
  */
 
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import Log from '../utils/logger.js';
 import Browser from '../utils/browser.js';
 import MediaInfo from './media-info.js';
 import FLVDemuxer from '../demux/flv-demuxer.js';
 import MP4Remuxer from '../remux/mp4-remuxer.js';
 import DemuxErrors from '../demux/demux-errors.js';
-import IOController from '../io/io-controller.ts';
-import TransmuxingEvents from './transmuxing-events.js';
+import IOController from '../io/io-controller';
+import TransmuxingEvents from './transmuxing-events';
+import {FlvConfig} from '../config';
+import {DataSource, LoaderErrors} from '../io/loader';
+
+export type StatisticInfo = {
+    url: string,
+    hasRedirect: boolean,
+    redirectedURL?: string,
+    speed: number,
+    loaderType: string,
+    currentSegmentIndex: number,
+    totalSegmentCount: number,
+}
 
 // Transmuxing (IO, Demuxing, Remuxing) controller, with multipart support
 class TransmuxingController {
+    TAG: 'TransmuxingController';
+    private _emitter: EventEmitter;
+    private readonly _config: FlvConfig;
+    private _mediaDataSource: DataSource;
+    private _currentSegmentIndex: number;
+    private _mediaInfo?: MediaInfo;
+    private _demuxer?: FLVDemuxer;
+    private _remuxer?: MP4Remuxer;
+    private _ioctl?: IOController;
+    private _statisticsReporter?: number;
+    private _pendingSeekTime?: number;
+    private _pendingResolveSeekPoint?: number;
 
-    constructor(mediaDataSource, config) {
+    constructor(mediaDataSource: DataSource, config: FlvConfig) {
         this.TAG = 'TransmuxingController';
         this._emitter = new EventEmitter();
 
@@ -121,7 +145,7 @@ class TransmuxingController {
         this._enableStatisticsReporter();
     }
 
-    _loadSegment(segmentIndex, optionalFrom) {
+    _loadSegment(segmentIndex: number, optionalFrom?: number) {
         this._currentSegmentIndex = segmentIndex;
         let dataSource = this._mediaDataSource.segments[segmentIndex];
 
@@ -236,7 +260,7 @@ class TransmuxingController {
         let consumed = 0;
 
         if (byteStart > 0) {
-            // IOController seeked immediately after opened, byteStart > 0 callback may received
+            // IOController seeked immediately after opened, byteStart > 0 callback may be received
             this._demuxer.bindDataSource(this._ioctl);
             this._demuxer.timestampBase = this._mediaDataSource.segments[this._currentSegmentIndex].timestampBase;
 
@@ -351,7 +375,7 @@ class TransmuxingController {
         this._emitter.emit(TransmuxingEvents.RECOVERED_EARLY_EOF);
     }
 
-    _onIOException(type, info) {
+    _onIOException(type: LoaderErrors, info: { code: string, msg: string }) {
         Log.e(this.TAG, `IOException: type = ${type}, code = ${info.code}, msg = ${info.msg}`);
         this._emitter.emit(TransmuxingEvents.IO_ERROR, type, info);
         this._disableStatisticsReporter();
@@ -417,18 +441,15 @@ class TransmuxingController {
     }
 
     _reportStatisticsInfo() {
-        let info = {};
-
-        info.url = this._ioctl.currentURL;
-        info.hasRedirect = this._ioctl.hasRedirect;
-        if (info.hasRedirect) {
-            info.redirectedURL = this._ioctl.currentRedirectedURL;
-        }
-
-        info.speed = this._ioctl.currentSpeed;
-        info.loaderType = this._ioctl.loaderType;
-        info.currentSegmentIndex = this._currentSegmentIndex;
-        info.totalSegmentCount = this._mediaDataSource.segments.length;
+        let info: StatisticInfo = {
+            url: this._ioctl.currentURL,
+            hasRedirect: this._ioctl.hasRedirect,
+            redirectedURL: this._ioctl.hasRedirect ? this._ioctl.currentRedirectedURL : undefined,
+            speed: this._ioctl.currentSpeed,
+            loaderType: this._ioctl.loaderType,
+            currentSegmentIndex: this._currentSegmentIndex,
+            totalSegmentCount: this._mediaDataSource.segments.length,
+        };
 
         this._emitter.emit(TransmuxingEvents.STATISTICS_INFO, info);
     }

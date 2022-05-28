@@ -14,7 +14,7 @@
             <div id="streamURL">
                 <div class="url-input">
                     <label for="sURL">Stream URL:</label>
-                    <input id="sURL" type="text" value="http://127.0.0.1/flv/7182741-1.flv" />
+                    <input id="sURL" type="text" value="http://localhost:3000/demo/output.flv" />
                     <button onclick="switch_mds()">Switch to MediaDataSource</button>
                 </div>
                 <div class="options">
@@ -31,7 +31,7 @@
             <div id="mediaSourceURL" class="hidden">
                 <div class="url-input">
                     <label for="msURL">MediaDataSource JsonURL:</label>
-                    <input id="msURL" type="text" value="http://127.0.0.1/flv/7182741.json" />
+                    <input id="msURL" type="text" value="http://localhost:3000/demo/7182741.json" />
                     <button onclick="switch_url()">Switch to URL</button>
                 </div>
             </div>
@@ -54,7 +54,7 @@
         <textarea name="logcatbox" class="logcatBox" rows="10" readonly></textarea>
     </div>
 
-    <script src="../dist/flv.js"></script>
+    <script src="../dist/flv.min.js"></script>
     
     <script>
         var checkBoxFields = ['isLive', 'withCredentials', 'hasAudio', 'hasVideo'];

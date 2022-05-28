@@ -12,5 +12,6 @@
     },
     "include": [
         "./src/**/*",
+        "./types/webworkify-webpack.d.ts"
     ]
 }

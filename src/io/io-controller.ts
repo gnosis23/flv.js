@@ -29,37 +29,37 @@ import {SeekHandler} from './seek-handler';
 // Manage IO Loaders
 class IOController {
     TAG: 'IOController';
-    _config: FlvConfig;
-    _extraData: any;
-    _stashInitialSize: number;
-    _stashUsed: number;
-    _stashSize: number;
-    _bufferSize: number;
-    _stashBuffer: ArrayBuffer;
-    _stashByteStart: number;
-    _enableStash: boolean;
-    _loader: BaseLoader;
-    _dataSource: DataSource;
-    _loaderClass?: CustomLoaderConstructor;
-    _seekHandler?: SeekHandler;
-    _isWebSocketURL: boolean;
-    _refTotalLength?: number;
-    _totalLength?: number;
-    _fullRequestFlag: boolean;
-    _currentRange?: DataSourceRange;
-    _redirectedURL?: string;
-    _speedNormalized: number;
-    _speedSampler: SpeedSampler;
-    _speedNormalizeList: number[];
-    _isEarlyEofReconnecting: boolean;
-    _paused: boolean;
-    _resumeFrom: number;
-    _onDataArrival?: (chunks: ArrayBufferLike, byteStart: number) => number;
-    _onSeeked?: () => void;
-    _onError?: (error: LoaderErrors, data: any) => void;
-    _onComplete?: (extra: any) => void;
-    _onRedirect?: (url: string) => void;
-    _onRecoveredEarlyEof?: () => void;
+    private readonly _config: FlvConfig;
+    private _extraData: any;
+    private readonly _stashInitialSize: number;
+    private _stashUsed: number;
+    private _stashSize: number;
+    private _bufferSize: number;
+    private _stashBuffer: ArrayBuffer;
+    private _stashByteStart: number;
+    private _enableStash: boolean;
+    private _loader: BaseLoader;
+    private _dataSource: DataSource;
+    private _loaderClass?: CustomLoaderConstructor;
+    private _seekHandler?: SeekHandler;
+    private _isWebSocketURL: boolean;
+    private readonly _refTotalLength?: number;
+    private _totalLength?: number;
+    private _fullRequestFlag: boolean;
+    private _currentRange?: DataSourceRange;
+    private _redirectedURL?: string;
+    private _speedNormalized: number;
+    private _speedSampler: SpeedSampler;
+    private readonly _speedNormalizeList: number[];
+    private _isEarlyEofReconnecting: boolean;
+    private _paused: boolean;
+    private _resumeFrom: number;
+    private _onDataArrival?: (chunks: ArrayBufferLike, byteStart: number) => number;
+    private _onSeeked?: () => void;
+    private _onError?: (error: LoaderErrors, data: any) => void;
+    private _onComplete?: (extra: any) => void;
+    private _onRedirect?: (url: string) => void;
+    private _onRecoveredEarlyEof?: () => void;
 
     constructor(dataSource: DataSource, config: FlvConfig, extraData: any) {
         this.TAG = 'IOController';
@@ -232,7 +232,7 @@ class IOController {
         return this._loader.type;
     }
 
-    _selectSeekHandler() {
+    private _selectSeekHandler() {
         let config = this._config;
 
         if (config.seekType === 'range') {
@@ -252,7 +252,7 @@ class IOController {
         }
     }
 
-    _selectLoader() {
+    private _selectLoader() {
         if (this._config.customLoader != null) {
             this._loaderClass = this._config.customLoader;
         } else if (FetchStreamLoader.isSupported()) {
@@ -262,7 +262,7 @@ class IOController {
         }
     }
 
-    _createLoader() {
+    private _createLoader() {
         this._loader = new this._loaderClass(this._seekHandler, this._config);
         if (this._loader.needStashBuffer === false) {
             this._enableStash = false;
@@ -274,7 +274,7 @@ class IOController {
         this._loader.onError = this._onLoaderError.bind(this);
     }
 
-    open(optionalFrom) {
+    open(optionalFrom?: number) {
         this._currentRange = {from: 0, to: -1};
         if (optionalFrom) {
             this._currentRange.from = optionalFrom;
@@ -335,7 +335,7 @@ class IOController {
      *
      * @dropUnconsumed: Ignore and discard all unconsumed data in stash buffer
      */
-    _internalSeek(bytes, dropUnconsumed) {
+    private _internalSeek(bytes, dropUnconsumed) {
         if (this._loader.isWorking()) {
             this._loader.abort();
         }
@@ -369,7 +369,7 @@ class IOController {
         // TODO: replace with new url
     }
 
-    _expandBuffer(expectedBytes) {
+    private _expandBuffer(expectedBytes) {
         let bufferNewSize = this._stashSize;
         while (bufferNewSize + 1024 * 1024 * 1 < expectedBytes) {
             bufferNewSize *= 2;
@@ -392,7 +392,7 @@ class IOController {
         this._bufferSize = bufferNewSize;
     }
 
-    _normalizeSpeed(input) {
+    private _normalizeSpeed(input) {
         let list = this._speedNormalizeList;
         let last = list.length - 1;
         let mid = 0;
@@ -416,7 +416,7 @@ class IOController {
         }
     }
 
-    _adjustStashSize(normalized) {
+    private _adjustStashSize(normalized) {
         let stashSizeKB;
 
         if (this._config.isLive) {
@@ -443,26 +443,26 @@ class IOController {
         this._stashSize = stashSizeKB * 1024;
     }
 
-    _dispatchChunks(chunks: ArrayBufferLike, byteStart: number): number {
+    private _dispatchChunks(chunks: ArrayBufferLike, byteStart: number): number {
         this._currentRange.to = byteStart + chunks.byteLength - 1;
         return this._onDataArrival(chunks, byteStart);
     }
 
-    _onURLRedirect(redirectedURL) {
+    private _onURLRedirect(redirectedURL) {
         this._redirectedURL = redirectedURL;
         if (this._onRedirect) {
             this._onRedirect(redirectedURL);
         }
     }
 
-    _onContentLengthKnown(contentLength) {
+    private _onContentLengthKnown(contentLength) {
         if (contentLength && this._fullRequestFlag) {
             this._totalLength = contentLength;
             this._fullRequestFlag = false;
         }
     }
 
-    _onLoaderChunkArrival(chunk, byteStart, receivedLength) {
+    private _onLoaderChunkArrival(chunk, byteStart, receivedLength) {
         if (!this._onDataArrival) {
             throw new IllegalStateException('IOController: No existing consumer (onDataArrival) callback!');
         }
@@ -572,7 +572,7 @@ class IOController {
         }
     }
 
-    _flushStashBuffer(dropUnconsumed) {
+    private _flushStashBuffer(dropUnconsumed) {
         if (this._stashUsed > 0) {
             let buffer = this._stashBuffer.slice(0, this._stashUsed);
             let consumed = this._dispatchChunks(buffer, this._stashByteStart);
@@ -599,7 +599,7 @@ class IOController {
         return 0;
     }
 
-    _onLoaderComplete(from, to) {
+    private _onLoaderComplete(from, to) {
         // Force-flush stash buffer, and drop unconsumed data
         this._flushStashBuffer(true);
 
@@ -608,7 +608,7 @@ class IOController {
         }
     }
 
-    _onLoaderError(type, data) {
+    private _onLoaderError(type, data) {
         Log.e(this.TAG, `Loader error, code = ${data.code}, msg = ${data.msg}`);
 
         this._flushStashBuffer(false);

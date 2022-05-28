@@ -16,16 +16,21 @@
  * limitations under the License.
  */
 
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import work from 'webworkify-webpack';
 import Log from '../utils/logger.js';
 import LoggingControl from '../utils/logging-control.js';
-import TransmuxingController from './transmuxing-controller.js';
-import TransmuxingEvents from './transmuxing-events.js';
-import TransmuxingWorker from './transmuxing-worker.js';
+import TransmuxingController from './transmuxing-controller';
+import TransmuxingEvents from './transmuxing-events';
 import MediaInfo from './media-info.js';
 
 class Transmuxer {
+    TAG: 'Transmuxer';
+    _emitter: EventEmitter;
+    _worker: Worker;
+    _workerDestroying: boolean;
+    _controller: TransmuxingController;
+    e: { onLoggingConfigChanged: () => any };
 
     constructor(mediaDataSource, config) {
         this.TAG = 'Transmuxer';
