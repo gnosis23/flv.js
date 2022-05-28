@@ -16,13 +16,28 @@
  * limitations under the License.
  */
 
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import PlayerEvents from './player-events.js';
-import {createDefaultConfig} from '../config.ts';
+import {createDefaultConfig, FlvConfig} from '../config';
 import {InvalidArgumentException, IllegalStateException} from '../utils/exception.js';
+import {DataSource} from '../io/loader';
+
+interface HTMLMediaElementEx extends HTMLVideoElement {
+    webkitDecodedFrameCount?: number,
+    webkitDroppedFrameCount?: number,
+}
 
 // Player wrapper for browser's native player (HTMLVideoElement) without MediaSource src. 
 class NativePlayer {
+    TAG: 'NativePlayer';
+    _type: string;
+    _emitter: EventEmitter;
+    _config: FlvConfig;
+    _pendingSeekTime?: number;
+    _statisticsReporter?: number;
+    _mediaDataSource: DataSource;
+    _mediaElement: HTMLMediaElementEx;
+    e: { onvLoadedMetadata: () => void }
 
     constructor(mediaDataSource, config) {
         this.TAG = 'NativePlayer';
@@ -193,7 +208,12 @@ class NativePlayer {
 
     get mediaInfo() {
         let mediaPrefix = (this._mediaElement instanceof HTMLAudioElement) ? 'audio/' : 'video/';
-        let info = {
+        let info: {
+            mimeType: string,
+            duration?: number,
+            width?: number,
+            height?: number,
+        } = {
             mimeType: mediaPrefix + this._mediaDataSource.type
         };
         if (this._mediaElement) {
@@ -207,9 +227,14 @@ class NativePlayer {
     }
 
     get statisticsInfo() {
-        let info = {
+        let info: {
+            playerType: string,
+            url: string,
+            decodedFrames?: number,
+            droppedFrames?: number,
+        } = {
             playerType: this._type,
-            url: this._mediaDataSource.url
+            url: this._mediaDataSource.url,
         };
 
         if (!(this._mediaElement instanceof HTMLVideoElement)) {

@@ -16,21 +16,54 @@
  * limitations under the License.
  */
 
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import Log from '../utils/logger.js';
 import Browser from '../utils/browser.js';
 import PlayerEvents from './player-events.js';
-import Transmuxer from '../core/transmuxer.ts';
-import TransmuxingEvents from '../core/transmuxing-events.ts';
+import Transmuxer from '../core/transmuxer';
+import TransmuxingEvents from '../core/transmuxing-events';
 import MSEController from '../core/mse-controller.js';
 import MSEEvents from '../core/mse-events.js';
 import {ErrorTypes, ErrorDetails} from './player-errors.js';
-import {createDefaultConfig} from '../config.ts';
+import {createDefaultConfig, FlvConfig} from '../config';
 import {InvalidArgumentException, IllegalStateException} from '../utils/exception.js';
+import { DataSource } from '../io/loader.js';
 
 class FlvPlayer {
+    TAG: 'FlvPlayer';
+    _type: string;
+    _emitter: EventEmitter;
+    _config: FlvConfig;
+    _now: () => number;
+    _alwaysSeekKeyframe: boolean;
+    _pendingSeekTime?: number;  // in seconds
+    _requestSetTime?: boolean;
+    _seekpointRecord?: {
+        seekPoint: number,
+        recordTime: number,
+    };
+    _progressChecker?: number;
+    _mediaDataSource: DataSource;
+    _mediaElement: HTMLVideoElement & {
+        webkitDecodedFrameCount?: number,
+        webkitDroppedFrameCount?: number,
+    };
+    _msectl: MSEController;
+    _transmuxer: Transmuxer;
+    _mseSourceOpened: boolean;
+    _hasPendingLoad: boolean;
+    _receivedCanPlay: boolean;
+    _mediaInfo: null;
+    _statisticsInfo: any;
+    e: {
+        onvLoadedMetadata: () => any,
+        onvSeeking: () => any,
+        onvCanPlay: () => any,
+        onvStalled: () => any,
+        onvProgress: () => any,
+    };
 
-    constructor(mediaDataSource, config) {
+    constructor(mediaDataSource: DataSource, config?: FlvConfig) {
         this.TAG = 'FlvPlayer';
         this._type = 'FlvPlayer';
         this._emitter = new EventEmitter();
@@ -529,7 +562,7 @@ class FlvPlayer {
         }
     }
 
-    _checkAndResumeStuckPlayback(stalled) {
+    _checkAndResumeStuckPlayback(stalled?: boolean) {
         let media = this._mediaElement;
         if (stalled || !this._receivedCanPlay || media.readyState < 2) {  // HAVE_CURRENT_DATA
             let buffered = media.buffered;

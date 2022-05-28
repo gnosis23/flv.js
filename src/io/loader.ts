@@ -36,39 +36,40 @@ export enum LoaderErrors {
     UNRECOVERABLE_EARLY_EOF = 'UnrecoverableEarlyEof'
 }
 
-export type DataSource = {
-
-    url: string;
-
+export interface MediaSegment {
     duration: number;
-
     filesize?: number;
+    url: string;
+    timestampBase?: number;
+    cors?: boolean;
+    withCredentials?: boolean;
+    referrerPolicy?: ReferrerPolicy;
+    redirectedURL?: string;
+}
 
+export interface DataSource {
+    type?: string;
+    isLive?: boolean;
+    cors?: boolean;
     withCredentials?: boolean;
 
-    cors?: boolean;
-
-    redirectedURL?: string;
-
-    referrerPolicy?: ReferrerPolicy;
-
-    segments?: DataSource[];
-
-
-    timestampBase?: number;
-
     hasAudio?: boolean;
-
     hasVideo?: boolean;
 
-};
+    url?: string;
+    duration?: number;
+    filesize?: number;
+
+    redirectedURL?: string;
+    referrerPolicy?: ReferrerPolicy;
+    timestampBase?: number;
+
+    segments?: MediaSegment[];
+}
 
 export type DataSourceRange = {
-
     from: number;
-
     to: number;
-
 };
 
 export interface CustomLoaderConstructor {
